@@ -30,7 +30,8 @@ public class NeoMotor extends SubsystemBase {
     }
     //Parameters: direction is -1, 1
     public void rotate(int direction) {
-      mainMotor.set(0.75*direction);
+      int invertedSign = Constants.NeoMotorConstants.INVERTED ? -1 : 1;
+      mainMotor.set(0.75 * direction * invertedSign);
 
       SmartDashboard.putBoolean("Spinning", true);
     }
@@ -39,6 +40,11 @@ public class NeoMotor extends SubsystemBase {
       mainMotor.set(0);
 
       SmartDashboard.putBoolean("Spinning", false);
+    }
+
+    public void toggleInverted() {
+      Constants.NeoMotorConstants.INVERTED = !Constants.NeoMotorConstants.INVERTED;
+      SmartDashboard.putBoolean("NeoMotor Inverted", Constants.NeoMotorConstants.INVERTED);
     }
 
     @Override
