@@ -8,15 +8,18 @@ import frc.robot.commands.SpinMotor;
 import frc.robot.subsystems.NeoMotor;
 //import edu.wpi.first.wpilibj.Joystick;
 //import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.Commands;
-//import edu.wpi.first.wpilibj2.command.button.Trigger;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 
 public class RobotContainer {
 
   private final CommandXboxController joystick = new CommandXboxController(0);
   public final NeoMotor neoMotor = new NeoMotor();
+  private final DigitalInput magSwitch = new DigitalInput(0);
+  private final Trigger magTriggered = new Trigger(() -> !magSwitch.get());
 
   public RobotContainer() {
     ConfigureBindings();
@@ -26,8 +29,8 @@ public class RobotContainer {
     joystick.a().whileTrue(new SpinMotor(neoMotor));
     joystick.x().toggleOnTrue(new SpinMotor(neoMotor));
     joystick.b().onTrue(Commands.runOnce(neoMotor::toggleInverted, neoMotor));
+    magTriggered.whileTrue(new SpinMotor(neoMotor));
    
-  
-  
+  }
   
 }
