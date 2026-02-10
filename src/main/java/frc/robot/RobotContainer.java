@@ -23,21 +23,27 @@ public class RobotContainer {
   private final DigitalInput microSwitch = new DigitalInput(3);
   private final Trigger microPressed = new Trigger(() -> microSwitch.get());
   private boolean m_latchOn = false;
-  private final Trigger latchActive = new Trigger(() -> m_latchOn && !microSwitch.get() && magSwitch.get());
+  private final Trigger latchActive = new Trigger(() ->
+      m_latchOn && !microSwitch.get() && magSwitch.get() && !joystick.a().getAsBoolean());
+  private final Trigger microRun = new Trigger(() -> !m_latchOn && microSwitch.get());
+  private final Trigger magRun = new Trigger(() -> !m_latchOn && !magSwitch.get());
   private final Trigger microStop = new Trigger(() -> m_latchOn && microSwitch.get());
   private final Trigger magStop = new Trigger(() -> m_latchOn && !magSwitch.get());
+  private final Trigger aRun = new Trigger(() -> !m_latchOn && joystick.a().getAsBoolean());
+  private final Trigger aStop = new Trigger(() -> m_latchOn && joystick.a().getAsBoolean());
 
   public RobotContainer() {
     ConfigureBindings();
   }
 
   private void ConfigureBindings() {
-    joystick.a().whileTrue(new SpinMotor(neoMotor));
+    aRun.whileTrue(new SpinMotor(neoMotor));
+    aStop.onTrue(Commands.runOnce(neoMotor::stop, neoMotor));
     joystick.x().toggleOnTrue(new SpinMotor(neoMotor));
     joystick.y().onTrue(Commands.runOnce(() -> m_latchOn = !m_latchOn));
     joystick.b().onTrue(Commands.runOnce(neoMotor::toggleInverted, neoMotor));
-    magTriggered.whileTrue(new SpinMotor(neoMotor));
-    microPressed.whileTrue(new SpinMotor(neoMotor));
+    magRun.whileTrue(new SpinMotor(neoMotor));
+    microRun.whileTrue(new SpinMotor(neoMotor));
     latchActive.whileTrue(new SpinMotor(neoMotor));
     microStop.onTrue(Commands.runOnce(neoMotor::stop, neoMotor));
     magStop.onTrue(Commands.runOnce(neoMotor::stop, neoMotor));
