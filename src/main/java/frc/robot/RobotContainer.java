@@ -23,7 +23,9 @@ public class RobotContainer {
   private final DigitalInput microSwitch = new DigitalInput(3);
   private final Trigger microPressed = new Trigger(() -> microSwitch.get());
   private boolean m_latchOn = false;
-  private final Trigger latchActive = new Trigger(() -> m_latchOn && !microSwitch.get());
+  private final Trigger latchActive = new Trigger(() -> m_latchOn && !microSwitch.get() && magSwitch.get());
+  private final Trigger microStop = new Trigger(() -> m_latchOn && microSwitch.get());
+  private final Trigger magStop = new Trigger(() -> m_latchOn && !magSwitch.get());
 
   public RobotContainer() {
     ConfigureBindings();
@@ -35,8 +37,10 @@ public class RobotContainer {
     joystick.y().onTrue(Commands.runOnce(() -> m_latchOn = !m_latchOn));
     joystick.b().onTrue(Commands.runOnce(neoMotor::toggleInverted, neoMotor));
     magTriggered.whileTrue(new SpinMotor(neoMotor));
+    microPressed.whileTrue(new SpinMotor(neoMotor));
     latchActive.whileTrue(new SpinMotor(neoMotor));
-    microPressed.onTrue(Commands.runOnce(neoMotor::stop, neoMotor));
+    microStop.onTrue(Commands.runOnce(neoMotor::stop, neoMotor));
+    magStop.onTrue(Commands.runOnce(neoMotor::stop, neoMotor));
    
   }
   
