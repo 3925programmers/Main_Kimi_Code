@@ -4,28 +4,23 @@
 
 package frc.robot.commands;
 
-import frc.robot.subsystems.NeoMotor;
 import edu.wpi.first.wpilibj2.command.Command;
 
-public class SpinMotor extends Command implements neoMotor{
-    private NeoMotor m_NeoMotor;
+public class SpinMotor extends Command {
+    private final neoMotor motor;
 
-    public SpinMotor(NeoMotor neoMotor) {
-        m_NeoMotor = neoMotor;
-        addRequirements(m_NeoMotor);
+    public SpinMotor(neoMotor motor) {
+        this.motor = motor;
+        addRequirements(this.motor);
     }
-
-    // public void SpinForwards(NeoMotor neoMotor) {
-
-    // }
 
     @Override
     public void execute() {
-        m_NeoMotor.rotate(1);
+        motor.rotate(1);
     }
 
     @Override
     public void end(boolean interrupted) {
-        m_NeoMotor.stop();
+        motor.stop();
     }
 }

@@ -5,10 +5,12 @@
 package frc.robot;
 
 import frc.robot.commands.SpinMotor;
+import frc.robot.subsystems.KrakenMotor;
 import frc.robot.subsystems.NeoMotor;
 //import edu.wpi.first.wpilibj.Joystick;
 //import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -18,6 +20,7 @@ public class RobotContainer {
 
   private final CommandXboxController joystick = new CommandXboxController(0);
   public final NeoMotor neoMotor = new NeoMotor();
+  public final KrakenMotor krakenMotor = new KrakenMotor();
   private final DigitalInput magSwitch = new DigitalInput(0);
   private final Trigger magTriggered = new Trigger(() -> !magSwitch.get());
   private final DigitalInput microSwitch = new DigitalInput(3);
@@ -36,17 +39,35 @@ public class RobotContainer {
     ConfigureBindings();
   }
 
+  private Command spinBothMotors() {
+    return Commands.parallel(new SpinMotor(neoMotor), new SpinMotor(krakenMotor));
+  }
+
+  private Command stopBothMotors() {
+    return Commands.runOnce(() -> {
+      neoMotor.stop();
+      krakenMotor.stop();
+    }, neoMotor, krakenMotor);
+  }
+
+  private Command toggleBothInverted() {
+    return Commands.runOnce(() -> {
+      neoMotor.toggleInverted();
+      krakenMotor.toggleInverted();
+    }, neoMotor, krakenMotor);
+  }
+
   private void ConfigureBindings() {
-    aRun.whileTrue(new SpinMotor(neoMotor));
-    aStop.onTrue(Commands.runOnce(neoMotor::stop, neoMotor));
-    joystick.x().toggleOnTrue(new SpinMotor(neoMotor));
+    aRun.whileTrue(spinBothMotors());
+    aStop.onTrue(stopBothMotors());
+    joystick.x().toggleOnTrue(spinBothMotors());
     joystick.y().onTrue(Commands.runOnce(() -> m_latchOn = !m_latchOn));
-    joystick.b().onTrue(Commands.runOnce(neoMotor::toggleInverted, neoMotor));
-    magRun.whileTrue(new SpinMotor(neoMotor));
-    microRun.whileTrue(new SpinMotor(neoMotor));
-    latchActive.whileTrue(new SpinMotor(neoMotor));
-    microStop.onTrue(Commands.runOnce(neoMotor::stop, neoMotor));
-    magStop.onTrue(Commands.runOnce(neoMotor::stop, neoMotor));
+    joystick.b().onTrue(toggleBothInverted());
+    magRun.whileTrue(spinBothMotors());
+    microRun.whileTrue(spinBothMotors());
+    latchActive.whileTrue(spinBothMotors());
+    microStop.onTrue(stopBothMotors());
+    magStop.onTrue(stopBothMotors());
    
   }
   

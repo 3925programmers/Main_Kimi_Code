@@ -15,8 +15,9 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.commands.neoMotor;
 
-public class NeoMotor extends SubsystemBase {
+public class NeoMotor extends SubsystemBase implements neoMotor {
   public SparkMax mainMotor = new SparkMax(Constants.NeoMotorConstants.MAIN_ID, MotorType.kBrushless);
 
     //@SuppressWarnings("removal")
@@ -29,6 +30,7 @@ public class NeoMotor extends SubsystemBase {
       //mainMotor.configure(rotateConfig, ResetMode.kResetSafeParameters , PersistMode.kPersistParameters);
     }
     //Parameters: direction is -1, 1
+    @Override
     public void rotate(int direction) {
       int invertedSign = Constants.NeoMotorConstants.INVERTED ? -1 : 1;
       mainMotor.set(0.75 * direction * invertedSign);
@@ -36,12 +38,14 @@ public class NeoMotor extends SubsystemBase {
       SmartDashboard.putBoolean("Spinning", true);
     }
 
+    @Override
     public void stop() {
       mainMotor.set(0);
 
       SmartDashboard.putBoolean("Spinning", false);
     }
 
+    @Override
     public void toggleInverted() {
       Constants.NeoMotorConstants.INVERTED = !Constants.NeoMotorConstants.INVERTED;
       SmartDashboard.putBoolean("NeoMotor Inverted", Constants.NeoMotorConstants.INVERTED);
