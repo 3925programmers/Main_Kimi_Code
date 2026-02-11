@@ -36,24 +36,36 @@ public class RobotContainer {
   private final Trigger aRun = new Trigger(() -> !m_latchOn && joystick.a().getAsBoolean());
   private final Trigger aStop = new Trigger(() -> m_latchOn && joystick.a().getAsBoolean());
   private boolean m_krakenReverseControls = false;
+  private boolean m_controlKraken = false;
 
   public RobotContainer() {
     SmartDashboard.putBoolean("Kraken Reverse Controls", m_krakenReverseControls);
+    SmartDashboard.putString("Active Motor", "NEO");
     ConfigureBindings();
   }
 
-  private Command spinBothMotors() {
-    return Commands.parallel(
-      new SpinMotor(neoMotor),
-      new SpinMotor(krakenMotor, () -> m_krakenReverseControls ? -1 : 1)
+  private Command spinSelectedMotor() {
+    return Commands.runEnd(
+      () -> {
+        if (m_controlKraken) {
+          int krakenDirection = m_krakenReverseControls ? -1 : 1;
+          krakenMotor.rotate(krakenDirection);
+        } else {
+          neoMotor.rotate(1);
+        }
+      },
+      this::stopBothMotorsNow,
+      neoMotor, krakenMotor
     );
   }
 
-  private Command stopBothMotors() {
-    return Commands.runOnce(() -> {
-      neoMotor.stop();
-      krakenMotor.stop();
-    }, neoMotor, krakenMotor);
+  private void stopBothMotorsNow() {
+    neoMotor.stop();
+    krakenMotor.stop();
+  }
+
+  private Command stopSelectedMotor() {
+    return Commands.runOnce(this::stopBothMotorsNow, neoMotor, krakenMotor);
   }
 
   private Command toggleKrakenDirectionMode() {
@@ -63,17 +75,25 @@ public class RobotContainer {
     });
   }
 
+  private Command toggleActiveMotor() {
+    return Commands.runOnce(() -> {
+      m_controlKraken = !m_controlKraken;
+      SmartDashboard.putString("Active Motor", m_controlKraken ? "KRAKEN" : "NEO");
+    });
+  }
+
   private void ConfigureBindings() {
-    aRun.whileTrue(spinBothMotors());
-    aStop.onTrue(stopBothMotors());
-    joystick.x().toggleOnTrue(spinBothMotors());
+    aRun.whileTrue(spinSelectedMotor());
+    aStop.onTrue(stopSelectedMotor());
+    joystick.x().toggleOnTrue(spinSelectedMotor());
     joystick.y().onTrue(Commands.runOnce(() -> m_latchOn = !m_latchOn));
     joystick.b().onTrue(toggleKrakenDirectionMode());
-    magRun.whileTrue(spinBothMotors());
-    microRun.whileTrue(spinBothMotors());
-    latchActive.whileTrue(spinBothMotors());
-    microStop.onTrue(stopBothMotors());
-    magStop.onTrue(stopBothMotors());
+    joystick.leftBumper().onTrue(toggleActiveMotor());
+    magRun.whileTrue(spinSelectedMotor());
+    microRun.whileTrue(spinSelectedMotor());
+    latchActive.whileTrue(spinSelectedMotor());
+    microStop.onTrue(stopSelectedMotor());
+    magStop.onTrue(stopSelectedMotor());
    
   }
   
