@@ -10,6 +10,7 @@ import frc.robot.subsystems.NeoMotor;
 //import edu.wpi.first.wpilibj.Joystick;
 //import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -34,13 +35,18 @@ public class RobotContainer {
   private final Trigger magStop = new Trigger(() -> m_latchOn && !magSwitch.get());
   private final Trigger aRun = new Trigger(() -> !m_latchOn && joystick.a().getAsBoolean());
   private final Trigger aStop = new Trigger(() -> m_latchOn && joystick.a().getAsBoolean());
+  private boolean m_krakenReverseControls = false;
 
   public RobotContainer() {
+    SmartDashboard.putBoolean("Kraken Reverse Controls", m_krakenReverseControls);
     ConfigureBindings();
   }
 
   private Command spinBothMotors() {
-    return Commands.parallel(new SpinMotor(neoMotor), new SpinMotor(krakenMotor));
+    return Commands.parallel(
+      new SpinMotor(neoMotor),
+      new SpinMotor(krakenMotor, () -> m_krakenReverseControls ? -1 : 1)
+    );
   }
 
   private Command stopBothMotors() {
@@ -50,11 +56,11 @@ public class RobotContainer {
     }, neoMotor, krakenMotor);
   }
 
-  private Command toggleBothInverted() {
+  private Command toggleKrakenDirectionMode() {
     return Commands.runOnce(() -> {
-      neoMotor.toggleInverted();
-      krakenMotor.toggleInverted();
-    }, neoMotor, krakenMotor);
+      m_krakenReverseControls = !m_krakenReverseControls;
+      SmartDashboard.putBoolean("Kraken Reverse Controls", m_krakenReverseControls);
+    });
   }
 
   private void ConfigureBindings() {
@@ -62,7 +68,7 @@ public class RobotContainer {
     aStop.onTrue(stopBothMotors());
     joystick.x().toggleOnTrue(spinBothMotors());
     joystick.y().onTrue(Commands.runOnce(() -> m_latchOn = !m_latchOn));
-    joystick.b().onTrue(toggleBothInverted());
+    joystick.b().onTrue(toggleKrakenDirectionMode());
     magRun.whileTrue(spinBothMotors());
     microRun.whileTrue(spinBothMotors());
     latchActive.whileTrue(spinBothMotors());
