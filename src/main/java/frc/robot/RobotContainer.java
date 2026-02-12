@@ -4,7 +4,6 @@
 
 package frc.robot;
 
-import frc.robot.commands.SpinMotor;
 import frc.robot.subsystems.KrakenMotor;
 import frc.robot.subsystems.NeoMotor;
 //import edu.wpi.first.wpilibj.Joystick;
@@ -35,10 +34,12 @@ public class RobotContainer {
   private final Trigger magStop = new Trigger(() -> m_latchOn && !magSwitch.get());
   private final Trigger aRun = new Trigger(() -> !m_latchOn && joystick.a().getAsBoolean());
   private final Trigger aStop = new Trigger(() -> m_latchOn && joystick.a().getAsBoolean());
+  private boolean m_neoReverseControls = false;
   private boolean m_krakenReverseControls = false;
   private boolean m_controlKraken = false;
 
   public RobotContainer() {
+    SmartDashboard.putBoolean("Neo Reverse Controls", m_neoReverseControls);
     SmartDashboard.putBoolean("Kraken Reverse Controls", m_krakenReverseControls);
     SmartDashboard.putString("Active Motor", "NEO");
     ConfigureBindings();
@@ -51,7 +52,8 @@ public class RobotContainer {
           int krakenDirection = m_krakenReverseControls ? -1 : 1;
           krakenMotor.rotate(krakenDirection);
         } else {
-          neoMotor.rotate(1);
+          int neoDirection = m_neoReverseControls ? -1 : 1;
+          neoMotor.rotate(neoDirection);
         }
       },
       this::stopBothMotorsNow,
@@ -68,10 +70,15 @@ public class RobotContainer {
     return Commands.runOnce(this::stopBothMotorsNow, neoMotor, krakenMotor);
   }
 
-  private Command toggleKrakenDirectionMode() {
+  private Command toggleSelectedDirectionMode() {
     return Commands.runOnce(() -> {
-      m_krakenReverseControls = !m_krakenReverseControls;
-      SmartDashboard.putBoolean("Kraken Reverse Controls", m_krakenReverseControls);
+      if (m_controlKraken) {
+        m_krakenReverseControls = !m_krakenReverseControls;
+        SmartDashboard.putBoolean("Kraken Reverse Controls", m_krakenReverseControls);
+      } else {
+        m_neoReverseControls = !m_neoReverseControls;
+        SmartDashboard.putBoolean("Neo Reverse Controls", m_neoReverseControls);
+      }
     });
   }
 
@@ -87,7 +94,7 @@ public class RobotContainer {
     aStop.onTrue(stopSelectedMotor());
     joystick.x().toggleOnTrue(spinSelectedMotor());
     joystick.y().onTrue(Commands.runOnce(() -> m_latchOn = !m_latchOn));
-    joystick.b().onTrue(toggleKrakenDirectionMode());
+    joystick.b().onTrue(toggleSelectedDirectionMode());
     joystick.leftBumper().onTrue(toggleActiveMotor());
     magRun.whileTrue(spinSelectedMotor());
     microRun.whileTrue(spinSelectedMotor());
